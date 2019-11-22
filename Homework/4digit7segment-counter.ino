@@ -15,7 +15,6 @@ const int pinD3 = 10;
 const int pinD4 = 13;
 
 const int segSize = 8;
-
 const int noDisplays = 4;
 const int noDigits = 10;
 
@@ -31,6 +30,8 @@ int minThreshold = 100;
 int maxThreshold = 900;
 byte decimalPoint = 1;
 int display = 0;
+const int minDisplay = 0;
+const int maxDisplay = 3;
 
 
 int segments[segSize] = {
@@ -55,30 +56,25 @@ byte digitMatrix[noDigits][segSize - 1] = {
   {1,1,1,1,0,1,1}   //9          
 };
 
-void displayNumber(byte digit, byte decimalPoint) {
+void displayNumber(byte digit) {
   for (int i = 0; i < segSize - 1; i++) {
     digitalWrite(segments[i], digitMatrix[digit][i]);
   }
-  //digitalWrite(segments[segSize - 1], decimalPoint);
 }
 
 void activateDisplay() {
   for (int i = 0; i < noDisplays; i++) {
     digitalWrite(digits[i], HIGH);
-    //digitalWrite(segments[segSize - 1], i);
     digitalWrite(digits[i], LOW);   
   }
 }
 
-void messing(int num){
+void cycling(int num){
   digitalWrite(digits[num], HIGH);
   delay(250);
   digitalWrite(digits[num], LOW);
-  //digitalWrite(segments[segSize - 1], num); 
   delay(250);
 }
-
-
 
 void setup() {
   // put your setup code here, to run once:
@@ -97,27 +93,33 @@ void loop() {
   yValue = analogRead(pinY);
   xValue = analogRead(pinX);
   swValue = digitalRead(pinSW);
-  //lockState = !swValue;
   
   activateDisplay();
+  cycling(display);
+  
+  if (swValue == HIGH) {
+    digitalWrite(segments[segSize - 1], LOW);
+  } else {
+    digitalWrite(segments[segSize - 1], HIGH);
+  }
   
   if (xValue < minThreshold && joyMoved == false) {
-    if (display > 0) {
-       display--;
-    } else {
-      display = 3; 
-    }
-    messing(display);
-    joyMoved = true;
+     if (display > minDisplay) {
+        display--;
+     } else {
+       display = maxDisplay; 
+     }
+     cycling(display);
+     joyMoved = true;
   }
   
   if (xValue > maxThreshold && joyMoved == false) {
-      if (display < 3) {
+      if (display < maxDisplay) {
         display++;
       } else {
-        display = 0;
+        display = minDisplay;
       }
-      messing(display);
+      cycling(display);
       joyMoved = true;
   }
   
@@ -145,7 +147,7 @@ void loop() {
 
   
   
-  displayNumber(digit, decimalPoint);
+  displayNumber(digit);
   delay(1);
 
 
